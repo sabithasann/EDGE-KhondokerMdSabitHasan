@@ -1,2 +1,2 @@
 # EDGE-KhondokerMdSabitHasan
-Testing Repository for EDGE-SQT Training Course 
+Project Repository for EDGE-SQT Training Course 

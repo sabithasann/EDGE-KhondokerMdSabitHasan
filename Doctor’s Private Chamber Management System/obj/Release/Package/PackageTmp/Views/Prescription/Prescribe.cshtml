@@ -1,0 +1,136 @@
+﻿@model WebApplication1.Models.Prescription
+
+@{
+    ViewBag.Title = "Create Prescription";
+}
+
+<h2>Create Prescription</h2>
+<hr />
+
+@using (Html.BeginForm("CreatePrescription", "Prescription", FormMethod.Post))
+{
+    <div class="form-horizontal">
+
+        @Html.HiddenFor(model => model.AppointmentId)
+        @Html.HiddenFor(model => model.UserId)
+        @Html.HiddenFor(model => model.ChamberId)
+        @Html.HiddenFor(model => model.PrescriptionDate)
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.Diagnosis, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.TextBoxFor(model => model.Diagnosis, new { @class = "form-control required", @placeholder = "Enter Diagnosis" })
+                @Html.ValidationMessageFor(model => model.Diagnosis, "", new { @class = "err" })
+            </div>
+        </div>
+        <br />
+        <div class="form-group">
+            @Html.LabelFor(model => model.AdditionalNotes, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.TextAreaFor(model => model.AdditionalNotes, new { @class = "form-control required", @placeholder = "Enter Additional Notes", rows = 4 })
+                @Html.ValidationMessageFor(model => model.AdditionalNotes, "", new { @class = "err" })
+            </div>
+        </div>
+        <br />
+        <h4>Medications</h4>
+        <hr />
+        <table class="table" id="medicationsTable">
+            <tr>
+                <th>Medication Name</th>
+                <th>Dosage</th>
+                <th>Instructions</th>
+                <th>Action</th>
+            </tr>
+            <tr>
+                <td>
+                    <input type="text" name="MedicationName" class="form-control" placeholder="e.g., Paracetamol 500mg" list="medicationList" required />
+                    <datalist id="medicationList"></datalist>
+                </td>
+                <td>
+                    <select class="form-control" name="Dosage" id="dosageSelect" onchange="toggleDosageInput(this)">
+                        <option value="">Select Dosage</option>
+                        <option value="1+1+1">1+1+1</option>
+                        <option value="1+0+1">1+0+1</option>
+                        <option value="0+0+1">0+0+1</option>
+                        <option value="1+0+0">1+0+0</option>
+                        <option value="other">Other</option>
+                    </select>
+                    <input type="text" name="Dosage" class="form-control mt-2" id="dosageInput" placeholder="Enter Dosage" style="display:none;" />
+                </td>
+                <td>
+                    <input type="text" name="Instructions" class="form-control" placeholder="e.g., Take after meals" required />
+                </td>
+                <td>
+                    <button type="button" class="btn btn-danger btn-sm remove-medication">Remove</button>
+                </td>
+            </tr>
+        </table>
+        <button type="button" class="btn btn-secondary btn-sm " id="addMedication">Add Medication</button>
+        <br /><br />
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <input type="submit" value="Create" class="btn btn-success" />
+            </div>
+        </div>
+    </div>
+}
+<a href="@Url.Action("Index", "Doctor")" class="btn btn-outline-dark btn-sm mt-3">Back</a>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+    <script type="text/javascript">
+        $(document).ready(function () {
+            // Fetch medication names from the server
+            $.ajax({
+                url: '@Url.Action("GetMedicationNames", "Prescription")',
+                type: 'GET',
+                success: function (data) {
+                    var datalist = $('#medicationList');
+                    datalist.empty();
+                    $.each(data, function (index, item) {
+                        datalist.append('<option value="' + item + '">');
+                    });
+                }
+            });
+
+            // Add Medication Row
+            $('#addMedication').click(function () {
+                var row = `<tr>
+                            <td>
+                                <input type="text" name="MedicationName" class="form-control" placeholder="e.g., Ibuprofen" list="medicationList" required />
+                            </td>
+                            <td>
+                                <select class="form-control" name="Dosage" onchange="toggleDosageInput(this)">
+                                    <option value="">Select Dosage</option>
+                                    <option value="1+1+1">1+1+1</option>
+                                    <option value="1+0+1">1+0+1</option>
+                                    <option value="0+0+1">0+0+1</option>
+                                    <option value="1+0+0">1+0+0</option>
+                                    <option value="other">Other</option>
+                                </select>
+                                <input type="text" name="Dosage" class="form-control mt-2" placeholder="Enter Dosage" style="display:none;" />
+                            </td>
+                            <td><input type="text" name="Instructions" class="form-control" placeholder="e.g., Before bedtime" required /></td>
+                            <td><button type="button" class="btn btn-danger btn-sm remove-medication">Remove</button></td>
+                        </tr>`;
+                $('#medicationsTable').append(row);
+            });
+
+            // Remove Medication Row
+            $('#medicationsTable').on('click', '.remove-medication', function () {
+                $(this).closest('tr').remove();
+            });
+        });
+
+        function toggleDosageInput(select) {
+            var input = $(select).next('input');
+            if (select.value === 'other') {
+                input.show();
+                input.attr('name', 'Dosage'); // Ensure the input field has the correct name
+            } else {
+                input.hide();
+                input.attr('name', ''); // Remove the name to avoid duplicate form data
+            }
+        }
+    </script>
+}
